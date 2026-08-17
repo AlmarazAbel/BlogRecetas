@@ -1,14 +1,18 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import morgan from 'morgan';
 import conectarDB from './src/config/database.js';
-
-dotenv.config();
+import usuarioRoutes from './src/routes/usuario.routes.js';
+import recetaRoutes from './src/routes/receta.routes.js';
 
 const app = express();
 
+// Middlewares
 app.use(cors());
+app.use(morgan('dev')); // Registrar peticiones en la terminal
 app.use(express.json());
+app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/recetas', recetaRoutes);
 
 const PORT = process.env.PORT || 3000;
 
