@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import conectarDB from './src/config/database.js';
+import usuarioRoutes from './src/routes/usuario.routes.js';
 
 const app = express();
 
@@ -9,6 +10,7 @@ const app = express();
 app.use(cors());
 app.use(morgan('dev')); // Registrar peticiones en la terminal
 app.use(express.json());
+app.use('/api/usuarios', usuarioRoutes);
 
 const PORT = process.env.PORT || 3000;
 
