@@ -1,35 +1,29 @@
 import  jwt from "jsonwebtoken";
+
 const verificarToken = (req, res, next) => {
-    try {
-        const authHeader = req.headers.authorization;
+  try {
+    const token = req.cookies.token;
 
-        if (!authHeader) {
-            return res.status(401).json({
-                mensaje: 'No se proporcionó un token'
-            });
-        }
-//extraer el token JWT del encabezado de autorización
-        const token = authHeader.split(' ')[1];
-
-        if (!token) {
-            return res.status(401).json({
-                mensaje: 'Formato de token inválido'
-            });
-        }
-
-        const usuario = jwt.verify(
-            token,
-            process.env.JWT_SECRET
-        );
-
-        req.usuario = usuario;
-
-        next();
-
-    } catch (error) {
-        return res.status(401).json({
-            mensaje: 'Token inválido o expirado'
-        });
+    if (!token) {
+      return res.status(401).json({
+        mensaje: "No se proporcionó un token",
+      });
     }
+
+    const usuario = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    req.usuario = usuario;
+
+    next();
+
+  } catch (error) {
+    return res.status(401).json({
+      mensaje: "Token inválido o expirado",
+    });
+  }
 };
-export default verificarToken 
+
+export default verificarToken;

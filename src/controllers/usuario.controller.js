@@ -55,21 +55,27 @@ export const iniciarSesion = async (req, res) => {
             });
         }
 
-        const token = jwt.sign(
-            {
-                id: usuario._id,
-                email: usuario.email
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: '2h'
-            }
-        );
+       const token = jwt.sign(
+  {
+    id: usuario._id,
+    email: usuario.email
+  },
+  process.env.JWT_SECRET,
+  {
+    expiresIn: "2h"
+  }
+);
 
-        res.json({
-            mensaje: 'Login correcto',
-            token
-        });
+res.cookie("token", token, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+  maxAge: 2 * 60 * 60 * 1000,
+});
+
+res.json({
+  mensaje: "Login correcto",
+});
 
     } catch (error) {
         console.error(error);
