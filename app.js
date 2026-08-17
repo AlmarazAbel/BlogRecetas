@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import conectarDB from './src/config/database.js';
 
 dotenv.config();
 
@@ -16,6 +17,8 @@ app.get('/', (req, res) => {
         mensaje: 'API Blog de Recetas funcionando'
     });
 });
+
+conectarDB();
 
 app.listen(PORT, () => {
     console.log(`Servidor funcionando en http://localhost:${PORT}`);
