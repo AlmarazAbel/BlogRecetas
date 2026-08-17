@@ -1,13 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import morgan from 'morgan';
 import conectarDB from './src/config/database.js';
-
-dotenv.config();
 
 const app = express();
 
+// Middlewares
 app.use(cors());
+app.use(morgan('dev')); // Registrar peticiones en la terminal
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
