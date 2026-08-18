@@ -1,87 +1,112 @@
 import Usuario from "../models/usuario.model.js";
 import bcrypt from "bcryptjs";
-import  jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 export const registrarUsuario = async (req, res) => {
-    try {
-        const { nombre, email, password } = req.body;
+  try {
+    const { nombre, email, password } = req.body;
 
-        const passwordEncriptada = await bcrypt.hash(password, 10);
+    const passwordEncriptada = await bcrypt.hash(password, 10);
 
-        const nuevoUsuario = new Usuario({
-            nombre,
-            email,
-            password: passwordEncriptada
-        });
+    const nuevoUsuario = new Usuario({
+      nombre,
+      email,
+      password: passwordEncriptada,
+    });
 
-        await nuevoUsuario.save();
+    await nuevoUsuario.save();
 
-        res.status(201).json({
-            mensaje: 'Usuario registrado correctamente',
-            usuario: {
-                nombre: nuevoUsuario.nombre,
-                email: nuevoUsuario.email
-            }
-        });
+    res.status(201).json({
+      mensaje: "Usuario registrado correctamente",
+      usuario: {
+        nombre: nuevoUsuario.nombre,
+        email: nuevoUsuario.email,
+      },
+    });
+  } catch (error) {
+    console.error(error);
 
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            mensaje: 'Error al registrar el usuario'
-        });
-    }
+    res.status(500).json({
+      mensaje: "Error al registrar el usuario",
+    });
+  }
 };
 export const iniciarSesion = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-        const usuario = await Usuario.findOne({ email });
+    const usuario = await Usuario.findOne({ email });
 
-        if (!usuario) {
-            return res.status(401).json({
-                mensaje: 'Email o contraseña incorrectos'
-            });
-        }
-
-        const passwordCorrecta = await bcrypt.compare(
-            password,
-            usuario.password
-        );
-
-        if (!passwordCorrecta) {
-            return res.status(401).json({
-                mensaje: 'Email o contraseña incorrectos'
-            });
-        }
-
-       const token = jwt.sign(
-  {
-    id: usuario._id,
-    email: usuario.email
-  },
-  process.env.JWT_SECRET,
-  {
-    expiresIn: "2h"
-  }
-);
-
-res.cookie("token", token, {
-  httpOnly: true,
-  secure: false,
-  sameSite: "lax",
-  maxAge: 2 * 60 * 60 * 1000,
-});
-
-res.json({
-  mensaje: "Login correcto",
-});
-
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            mensaje: 'Error al iniciar sesión'
-        });
+    if (!usuario) {
+      return res.status(401).json({
+        mensaje: "Email o contraseña incorrectos",
+      });
     }
+
+    const passwordCorrecta = await bcrypt.compare(password, usuario.password);
+
+    if (!passwordCorrecta) {
+      return res.status(401).json({
+        mensaje: "Email o contraseña incorrectos",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: usuario._id,
+        email: usuario.email,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "2h",
+      },
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 2 * 60 * 60 * 1000,
+    });
+
+    res.json({
+      mensaje: "Login correcto",
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      mensaje: "Error al iniciar sesión",
+    });
+  }
+};
+export const obtenerUsuarioActual = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario.id).select("-password");
+
+    if (!usuario) {
+      return res.status(404).json({
+        mensaje: "Usuario no encontrado",
+      });
+    }
+
+    res.json(usuario);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      mensaje: "Error al obtener el usuario",
+    });
+  }
+};
+export const cerrarSesion = (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+    });
+
+    res.json({
+        mensaje: "Sesión cerrada correctamente",
+    });
 };
