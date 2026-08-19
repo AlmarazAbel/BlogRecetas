@@ -34,7 +34,11 @@ const usuarioSchema = new mongoose.Schema({
     codigoExpiracion: {
         type: Date,
         default: null
-    }
+    },
+    ultimaSolicitudCodigo: {
+    type: Date,
+    default: null
+}
 });
 
 const Usuario = mongoose.model("Usuario", usuarioSchema);

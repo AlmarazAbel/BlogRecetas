@@ -105,6 +105,85 @@ export const verificarEmail = async (req, res) => {
     });
   }
 };
+export const reenviarCodigo = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const usuario = await Usuario.findOne({ email });
+
+    if (!usuario) {
+      return res.status(404).json({
+        mensaje: "Usuario no encontrado",
+      });
+    }
+
+    if (usuario.emailVerificado) {
+      return res.status(400).json({
+        mensaje: "El email ya está verificado",
+      });
+    }
+
+    // ⏱️ Verificar si todavía está dentro del tiempo de espera
+    const ahora = Date.now();
+
+    if (usuario.ultimaSolicitudCodigo) {
+      const ultimaSolicitud = new Date(
+        usuario.ultimaSolicitudCodigo
+      ).getTime();
+
+      const segundosTranscurridos =
+        (ahora - ultimaSolicitud) / 1000;
+
+      const tiempoEspera = 60;
+
+      if (segundosTranscurridos < tiempoEspera) {
+        const segundosRestantes = Math.ceil(
+          tiempoEspera - segundosTranscurridos
+        );
+
+        return res.status(429).json({
+          mensaje: `Debes esperar ${segundosRestantes} segundos para solicitar otro código`,
+          segundosRestantes,
+        });
+      }
+    }
+
+    // Generar nuevo código
+    const codigoVerificacion = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    // Nueva expiración: 10 minutos
+    const codigoExpiracion = new Date(
+      Date.now() + 10 * 60 * 1000
+    );
+
+    usuario.codigoVerificacion = codigoVerificacion;
+    usuario.codigoExpiracion = codigoExpiracion;
+
+    // Guardar cuándo se solicitó el código
+    usuario.ultimaSolicitudCodigo = new Date();
+
+    await usuario.save();
+
+    // Enviar nuevo código
+    await enviarCorreo(
+      email,
+      codigoVerificacion
+    );
+
+    res.json({
+      mensaje: "Nuevo código enviado correctamente",
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      mensaje: "Error al reenviar el código",
+    });
+  }
+};
 export const iniciarSesion = async (req, res) => {
   try {
     const { email, password } = req.body;
