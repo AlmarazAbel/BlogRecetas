@@ -11,9 +11,9 @@ const app = express();
 // Middlewares
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL,
     credentials: true,
-  }),
+  })
 );
 app.use(morgan("dev")); // Registrar peticiones en la terminal
 app.use(express.json());
@@ -31,6 +31,6 @@ app.get("/", (req, res) => {
 
 conectarDB();
 
-app.listen(PORT, () => {
-  console.log(`Servidor funcionando en http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Servidor funcionando en el puerto ${PORT}`);
 });

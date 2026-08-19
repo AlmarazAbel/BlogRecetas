@@ -127,18 +127,15 @@ export const reenviarCodigo = async (req, res) => {
     const ahora = Date.now();
 
     if (usuario.ultimaSolicitudCodigo) {
-      const ultimaSolicitud = new Date(
-        usuario.ultimaSolicitudCodigo
-      ).getTime();
+      const ultimaSolicitud = new Date(usuario.ultimaSolicitudCodigo).getTime();
 
-      const segundosTranscurridos =
-        (ahora - ultimaSolicitud) / 1000;
+      const segundosTranscurridos = (ahora - ultimaSolicitud) / 1000;
 
       const tiempoEspera = 60;
 
       if (segundosTranscurridos < tiempoEspera) {
         const segundosRestantes = Math.ceil(
-          tiempoEspera - segundosTranscurridos
+          tiempoEspera - segundosTranscurridos,
         );
 
         return res.status(429).json({
@@ -150,13 +147,11 @@ export const reenviarCodigo = async (req, res) => {
 
     // Generar nuevo código
     const codigoVerificacion = Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     ).toString();
 
     // Nueva expiración: 10 minutos
-    const codigoExpiracion = new Date(
-      Date.now() + 10 * 60 * 1000
-    );
+    const codigoExpiracion = new Date(Date.now() + 10 * 60 * 1000);
 
     usuario.codigoVerificacion = codigoVerificacion;
     usuario.codigoExpiracion = codigoExpiracion;
@@ -167,15 +162,11 @@ export const reenviarCodigo = async (req, res) => {
     await usuario.save();
 
     // Enviar nuevo código
-    await enviarCorreo(
-      email,
-      codigoVerificacion
-    );
+    await enviarCorreo(email, codigoVerificacion);
 
     res.json({
       mensaje: "Nuevo código enviado correctamente",
     });
-
   } catch (error) {
     console.error(error);
 
@@ -219,14 +210,14 @@ export const iniciarSesion = async (req, res) => {
         expiresIn: "2h",
       },
     );
+    const esProduccion = process.env.NODE_ENV === "production";
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: esProduccion,
+      sameSite: esProduccion ? "none" : "lax",
       maxAge: 2 * 60 * 60 * 1000,
     });
-
     res.json({
       mensaje: "Login correcto",
     });
